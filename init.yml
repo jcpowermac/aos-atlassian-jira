@@ -1,4 +1,4 @@
-- name: Build DevCloud Base Image
+- name: Build Jira  Image
   hosts: localhost
   tasks:
     - name: Install Packages

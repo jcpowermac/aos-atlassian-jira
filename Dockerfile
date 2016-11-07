@@ -91,8 +91,6 @@ exec "$@"' > ${APP_ROOT}/bin/nss_entrypoint.sh && \
     chmod -R g+rw ${APP_ROOT} && \
     find ${APP_ROOT} -type d -exec chmod g+x {} +
 
-EXPOSE 8080
-
 ### Containers should NOT run as root as a best practice
 USER ${USER_UID}
 WORKDIR ${APP_ROOT}
