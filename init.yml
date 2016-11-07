@@ -1,0 +1,63 @@
+- name: Build DevCloud Base Image
+  hosts: localhost
+  tasks:
+    - name: Install Packages
+      yum:
+        pkg: "{{ item }}"
+      with_items:
+        - wget
+        - http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
+
+    - name: Install MySQL Python Connector
+      yum:
+        pkg: mysql-connector-python
+
+    - name: Download MySQL Java Connector
+      get_url:
+        url: https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.38.tar.gz
+        dest: /tmp/mysql.tar.gz
+
+    - name: Extract MySQL Java Connector
+      command: tar -xf /tmp/mysql.tar.gz --directory /tmp --strip-components=1 --no-same-owner "mysql-connector-java-5.1.38/mysql-connector-java-5.1.38-bin.jar"
+
+    - name: Install Packages
+      get_url:
+        url: "https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-core-{{ application_version }}-x64.bin"
+        dest: /tmp/jira.bin
+        mode: 0755
+
+    - name: Create Directories
+      file:
+        dest: "{{ item }}"
+        state: directory
+        recurse: yes
+      with_items:
+        - "{{ application_install }}/lib"
+        - "{{ application_install }}/caches/indexes"
+
+    - name: Run Installer
+      command: /tmp/jira.bin -q -varfile /tmp/response.varfile
+      
+    - name: Copy MySQL Java Connectory
+      copy:
+        src: /tmp/mysql-connector-java-5.1.38-bin.jar
+        dest: "{{ application_install }}/lib"
+
+    - name: Remove binary
+      file:
+        dest: /tmp/jira.bin
+        state: absent
+
+    - name: Fix Permissions
+      file:
+        dest: "{{ item }}"
+        state: directory
+        owner: jira
+        group: jira
+        mode: 0750
+        recurse: yes
+      with_items:
+         - "{{ application_install }}/conf"
+         - "{{ application_install }}/log"
+         - "{{ application_install }}/temp"
+         - "{{ application_install }}/work"
