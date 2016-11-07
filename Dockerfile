@@ -95,12 +95,6 @@ exec "$@"' > ${APP_ROOT}/bin/nss_entrypoint.sh && \
 USER ${USER_UID}
 WORKDIR ${APP_ROOT}
 
-RUN echo $'#!/bin/sh\n\
-id\n\
-whoami\n\
-tail -f /dev/null' > ${APP_ROOT}/bin/run.sh && \
-    chmod ug+x ${APP_ROOT}/bin/run.sh
-
 VOLUME ${APPLICATION_HOME} ${APPLICATION_INSTALL}/logs
 ### NSS_WRAPPER for arbitrary uid recognition
 ENTRYPOINT [ "nss_entrypoint.sh" ]

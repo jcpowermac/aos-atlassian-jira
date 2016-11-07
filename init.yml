@@ -53,8 +53,8 @@
         dest: "{{ item }}"
         state: directory
         owner: jira
-        group: jira
-        mode: 0750
+        group: root 
+        mode: 0775
         recurse: yes
       with_items:
          - "{{ application_install }}/conf"
