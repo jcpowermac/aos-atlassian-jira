@@ -32,7 +32,7 @@ LABEL io.k8s.description="Starter App will do ....." \
 ### https://github.com/projectatomic/container-best-practices/blob/master/creating/help.adoc
 #COPY help.md /
 
-COPY response.varfile dbconfig.xml.j2 init.yml /tmp/
+COPY response.varfile  init.yml /tmp/
 
 
 RUN yum clean all && \
