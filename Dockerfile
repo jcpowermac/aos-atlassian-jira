@@ -52,6 +52,7 @@ ENV APP_HOME=${APP_ROOT}/src \
 
 
 RUN mkdir -p ${APP_HOME} ${APP_ROOT}/bin && \
+    usermod -u ${USER_UID} -g 0 ${USER_NAME} && \ 
 #    useradd -l -u ${USER_UID} -r -g 0 -d ${APP_ROOT} -s /sbin/nologin \
 #            -c "${USER_NAME} application user" ${USER_NAME} && \
 
