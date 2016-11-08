@@ -1,16 +1,24 @@
 - name: Build Jira  Image
   hosts: localhost
   tasks:
+    - name: Update
+      command: 'yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs --disablerepo "*" --enablerepo rhel-7-server-rpms,rhel7-server-optional-rpms'
+    
     - name: Install Packages
       yum:
         pkg: "{{ item }}"
+        disablerepo: "*"
+        enablerepo: "rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms" 
       with_items:
         - wget
         - http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
+        - nss_wrapper
+        - gettext
+        - golang-github-cpuguy83-go-md2man
 
-    - name: Install MySQL Python Connector
-      yum:
-        pkg: mysql-connector-python
+  #    - name: Install MySQL Python Connector
+  #    yum:
+  #      pkg: mysql-connector-python
 
     - name: Download MySQL Java Connector
       get_url:
@@ -20,7 +28,7 @@
     - name: Extract MySQL Java Connector
       command: tar -xf /tmp/mysql.tar.gz --directory /tmp --strip-components=1 --no-same-owner "mysql-connector-java-5.1.38/mysql-connector-java-5.1.38-bin.jar"
 
-    - name: Install Packages
+    - name: Download Jira 
       get_url:
         url: "https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-core-{{ application_version }}-x64.bin"
         dest: /tmp/jira.bin
