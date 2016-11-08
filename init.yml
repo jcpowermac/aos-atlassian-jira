@@ -66,6 +66,6 @@
         recurse: yes
       with_items:
          - "{{ application_install }}/conf"
-         - "{{ application_install }}/log"
+         - "{{ application_install }}/logs"
          - "{{ application_install }}/temp"
          - "{{ application_install }}/work"
