@@ -1,12 +1,14 @@
-- name: Build Jira  Image
+- name: Jira
   hosts: localhost
+  gather_facts: False
   tasks:
-    - name: Update
+    - name: Update Minimal
       command: 'yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs --disablerepo "*" --enablerepo rhel-7-server-rpms,rhel7-server-optional-rpms'
     
     - name: Install Packages
       yum:
-        pkg: "{{ item }}"
+        name: "{{ item }}"
+        state: present
         disablerepo: "*"
         enablerepo: "rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms" 
       with_items:
@@ -16,9 +18,22 @@
         - gettext
         - golang-github-cpuguy83-go-md2man
 
-  #    - name: Install MySQL Python Connector
-  #    yum:
-  #      pkg: mysql-connector-python
+    - name: Create man page
+      command: go-md2man -in /tmp/help.md -out /help.1
+      result: manpage
+
+    - name: Remove help.md file
+      file:
+        dest: /tmp/help.md
+        state: absent
+      when: "{{ manpage|success }}"
+    
+    - name: Remove go-md2man package
+      yum:
+        pkg: "{{ item }}"
+        state: absent
+      with_items:
+        - golang-github-cpuguy83-go-md2man
 
     - name: Download MySQL Java Connector
       get_url:
@@ -50,8 +65,13 @@
       copy:
         src: /tmp/mysql-connector-java-5.1.38-bin.jar
         dest: "{{ application_install }}/lib"
+    
+    - name: Remove MySQL Connector from /tmp
+      file:
+        dest: /tmp/mysql-connector-java-5.1.38-bin.jar
+        state: absent
 
-    - name: Remove binary
+    - name: Remove Jira binary
       file:
         dest: /tmp/jira.bin
         state: absent

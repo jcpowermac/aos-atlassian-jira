@@ -1,14 +1,14 @@
-% starter-nsswrapper-NSSWRAPPER (1) Container Image Pages
-% Tommy Hughes
-% October 13, 2016
+% atlassian jira (1) Container Image Pages
+% Joseph Callen
+% November 9, 2016 
 
 # NAME
-starter-nsswrapper-nsswrapper \- starter-nsswrapper-nsswrapper container image
+atlassian-jira \- atlassian-jira container image
 
 # DESCRIPTION
-The starter-nsswrapper-nsswrapper image provides an example of how a RHEL-based image build could start.
+The atlassian-jira image provides an example of how a RHEL-based image build could start.
 
-The starter-nsswrapper image is designed to be run by the atomic command with one of these options:
+The atlassian-jira image is designed to be run by the atomic command with one of these options:
 
 `run`
 
@@ -30,22 +30,22 @@ The container itself consists of:
 Files added to the container during docker build include: /help.1.
 
 # USAGE
-To use the starter-nsswrapper container, you can run the atomic command with run, stop, or uninstall options:
+To use the atlassian-jira container, you can run the atomic command with run, stop, or uninstall options:
 
-To run the starter-nsswrapper container:
+To run the atlassian-jira container:
 
-  atomic run acme/starter-nsswrapper
+  atomic run acme/atlassian-jira
 
-To stop the starter-nsswrapper container (after it is installed), run:
+To stop the atlassian-jira container (after it is installed), run:
 
-  atomic stop acme/starter-nsswrapper
+  atomic stop acme/atlassian-jira
 
-To remove the starter-nsswrapper container (not the image) from your system, run:
+To remove the atlassian-jira container (not the image) from your system, run:
 
-  atomic uninstall acme/starter-nsswrapper
+  atomic uninstall acme/atlassian-jira
 
 # LABELS
-The starter-nsswrapper container includes the following LABEL settings:
+The atlassian-jira container includes the following LABEL settings:
 
 That atomic command runs the docker command set in this label:
 
@@ -56,11 +56,11 @@ That atomic command runs the docker command set in this label:
         -p 8443:8443 \
         $IMAGE' \
 
-  The contents of the RUN label tells an `atomic run acme/starter-nsswrapper` command to open ports 8080/8443 & set the name of the container.
+  The contents of the RUN label tells an `atomic run acme/atlassian-jira` command to open ports 8080/8443 & set the name of the container.
 
 `Name=`
 
-The registry location and name of the image. For example, Name="acme/starter-nsswrapper".
+The registry location and name of the image. For example, Name="acme/atlassian-jira".
 
 `Version=`
 
@@ -70,7 +70,7 @@ The Red Hat Enterprise Linux version from which the container was built. For exa
 
 The specific release number of the container. For example, Release="12.1.a":
 
-When the atomic command runs the starter-nsswrapper container, it reads the command line associated with the selected option
+When the atomic command runs the atlassian-jira container, it reads the command line associated with the selected option
 from a LABEL set within the Docker container itself. It then runs that command. The following sections detail
 each option and associated LABEL:
 
@@ -106,3 +106,4 @@ Similar to a Changelog of sorts which can be as detailed as the maintainer wishe
 
 # AUTHORS
 Tommy Hughes
+Joseph Callen
