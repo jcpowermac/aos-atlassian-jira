@@ -71,12 +71,12 @@ export NSS_WRAPPER_GROUP=/etc/group\n\
 exec "$@"' > ${APP_ROOT}/bin/nss_entrypoint.sh && \
     cp ${APP_ROOT}/bin/nss_entrypoint.sh ${APP_ROOT}/.profile && \ 
     chmod ug+x ${APP_ROOT}/bin/nss_entrypoint.sh && \
-    chown -R ${USER_UID}:0 ${APPLICATION_INSTALL} && \
-    chmod -R g+rw ${APPLICATION_INSTALL} && \
+#    chown -R ${USER_UID}:0 ${APPLICATION_INSTALL} && \
+#    chmod -R g+rw ${APPLICATION_INSTALL} && \
     chown -R ${USER_UID}:0 ${APP_ROOT} && \
     chmod -R g+rw ${APP_ROOT} && \
-    find ${APP_ROOT} -type d -exec chmod g+x {} + && \
-    find ${APPLICATION_INSTALL} -type d -exec chmod g+x {} +
+    find ${APP_ROOT} -type d -exec chmod g+x {} +
+#    find ${APPLICATION_INSTALL} -type d -exec chmod g+x {} +
 
 ### Containers should NOT run as root as a best practice
 USER ${USER_UID}
