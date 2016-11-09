@@ -1,0 +1,2 @@
+#### Container as non-root user and random user id
+Containers should not run as root and within OpenShift they run by default under a random user id. Fortunately Jira already runs as a non-root user Jira.  Unfortunately the Jira application expects to run as the user Jira.  That is where our [starter-nsswrapper](https://github.com/RHsyseng/container-rhel-examples/tree/master/starter-nsswrapper) project comes in.
