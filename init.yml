@@ -20,7 +20,7 @@
 
     - name: Create man page
       command: go-md2man -in /tmp/help.md -out /help.1
-      result: manpage
+      register: manpage
 
     - name: Remove help.md file
       file:
