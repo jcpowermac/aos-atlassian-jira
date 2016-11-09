@@ -11,10 +11,12 @@
 For this example I will use [Atlassian Jira](https://www.atlassian.com/software/jira) - a issue and project tracking for teams.  I am using this as an example because a have previous experience with the product.
 
 Jira has two options for installation:
+
 1. Archive
 2. Binary
 
 For this example the binary option will be used.  Why:
+
 1. Java is required for Jira to run and the binary provides the supported version that it requires.
 2. Jira requires directory and user account creation which is automated by the binary installer.
 

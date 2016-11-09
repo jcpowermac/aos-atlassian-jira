@@ -7,7 +7,7 @@ The aos-atlassian-jira is an example and documentation for:
 
 ---
 ##### Documentation
-- [Where to being](docs/1_wheretobegin.md)
+- [Where to begin](docs/1_wheretobegin.md)
 - [non-root and random uuid](docs/2_nonroot.md)
 - [OpenShift and Jira](docs/3_openshift.md)
 - [Jira's Database](docs/4_database.md)
