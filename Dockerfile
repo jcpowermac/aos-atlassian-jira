@@ -2,8 +2,8 @@
 FROM registry.access.redhat.com/rhel7
 MAINTAINER Red Hat Systems Engineering <refarch-feedback@redhat.com>
 
-ENV APPLICATION=jira \
-    APPLICATION_HOME=/var/atlassian/${APPLICATION} \
+ENV APPLICATION jira 
+ENV APPLICATION_HOME=/var/atlassian/${APPLICATION} \
     APPLICATION_INSTALL=/opt/atlassian/${APPLICATION} \
     APPLICATION_VERSION=7.1.9
 
