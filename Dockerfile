@@ -32,34 +32,15 @@ LABEL io.k8s.description="Starter App will do ....." \
 ### https://github.com/projectatomic/container-best-practices/blob/master/creating/help.adoc
 #COPY help.md /
 
-COPY response.varfile  init.yml /tmp/
+COPY help.md response.varfile init.yml /tmp/
 
 
 RUN yum clean all && \
-    yum-config-manager --disable \* && \
-    yum-config-manager --enable rhel-7-server-rpms && \
-    yum-config-manager --enable rhel-7-server-optional-rpms && \
-### Add additional Red Hat repos
-#    yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-    yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs && \
-### NSS_WRAPPER for arbitrary uid recognition
-    yum-config-manager --enable rhel-7-server-ose-3.3-rpms && yum -y install --setopt=tsflags=nodocs nss_wrapper gettext && \
-### Add your package needs to this installation line
-#    yum -y install --setopt=tsflags=nodocs httpd && \
-### help.md conversion
-#    yum -y install golang-github-cpuguy83-go-md2man && go-md2man -in help.md -out help.1 && \
-#    yum -y remove golang-github-cpuguy83-go-md2man && rm -f help.md && \
-### EPEL packages can be installed if necessary but, install non-epel packages before
-### adding the EPEL repo so that supported bits are used wherever possible.
-#    curl -o epel-release-latest-7.noarch.rpm -SL https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
-#            --retry 999 --retry-max-time 0 -C - && \
-#    rpm -ivh epel-release-latest-7.noarch.rpm && rm epel-release-latest-7.noarch.rpm && \
-#    yum -y install --setopt=tsflags=nodocs jq && \
-#    yum-config-manager --disable epel && \
-    yum -y install ansible && \
+    yum -y install --disablerepo "*" --enablerepo rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms --setopt=tsflags=nodocs ansible && \
     ansible-playbook /tmp/init.yml -c local -i localhost, \
     --extra-vars "application_install=${APPLICATION_INSTALL} application_version=${APPLICATION_VERSION}" && \
     yum -y erase ansible && \ 
+    yum -y autoremove && \
     yum clean all
 
 ### Setup the user that is used for the build execution and for the application runtime execution by default.
@@ -71,6 +52,7 @@ ENV APP_HOME=${APP_ROOT}/src \
 
 
 RUN mkdir -p ${APP_HOME} ${APP_ROOT}/bin && \
+    usermod -u ${USER_UID} -g 0 ${USER_NAME} && \ 
 #    useradd -l -u ${USER_UID} -r -g 0 -d ${APP_ROOT} -s /sbin/nologin \
 #            -c "${USER_NAME} application user" ${USER_NAME} && \
 
