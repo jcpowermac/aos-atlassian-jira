@@ -30,7 +30,6 @@ LABEL Name="Jira" \
 ### https://github.com/projectatomic/container-best-practices/blob/master/creating/help.adoc
 
 COPY help.md user_setup response.varfile init.yml /tmp/
-COPY nss_entrypoint /
 
 ### This is just an example of using Ansible within a Dockerfile.  This is not meant to be a best
 ### practice.
