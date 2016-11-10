@@ -20,10 +20,8 @@ LABEL Name="Jira" \
       RUN='docker run -tdi --name ${NAME} \
       -u 123456 \
       ${IMAGE}' \
-      STOP='docker stop ${NAME}'
-
-### OpenShift labels
-LABEL io.k8s.description="Agile Project Management Software" \
+      STOP='docker stop ${NAME}'\
+      io.k8s.description="Agile Project Management Software" \
       io.k8s.display-name="Atlassian Jira" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="jira,AtlassianJira"
@@ -31,7 +29,8 @@ LABEL io.k8s.description="Agile Project Management Software" \
 ### Atomic Help File - Write in Markdown, it will be converted to man format at build time.
 ### https://github.com/projectatomic/container-best-practices/blob/master/creating/help.adoc
 
-COPY help.md response.varfile init.yml /tmp/
+COPY help.md user_setup response.varfile init.yml /tmp/
+COPY nss_entrypoint /
 
 ### This is just an example of using Ansible within a Dockerfile.  This is not meant to be a best
 ### practice.
@@ -47,43 +46,25 @@ RUN yum clean all && \
     yum clean all
 
 ### Setup the user that is used for the build execution and for the application runtime execution by default.
-ENV APP_ROOT=${APPLICATION_HOME} \
+ENV APP_ROOT=${APPLICATION_INSTALL} \
     USER_NAME=jira \
     USER_UID=1000
-ENV APP_HOME=${APP_ROOT}/src \
-    PATH=$PATH:${APP_ROOT}/bin
+ENV APP_HOME=${APPLICATION_HOME} PATH=$PATH:${APP_ROOT}/bin
+RUN mkdir -p ${APP_ROOT}/etc
+COPY bin/ ${APP_ROOT}/bin/
+RUN chmod -R ug+x ${APP_ROOT}/bin ${APP_ROOT}/etc/ /tmp/user_setup && \
+    /tmp/user_setup
 
-
-# 
-RUN mkdir -p ${APP_HOME} ${APP_ROOT}/bin && \
-    usermod -u ${USER_UID} -g 0 ${USER_NAME} && \ 
 
 ### NSS_WRAPPER for arbitrary uid recognition
-    sed "s@${USER_NAME}:x:${USER_UID}:0@${USER_NAME}:x:\${USER_ID}:\${GROUP_ID}@g" /etc/passwd > ${APP_ROOT}/passwd.template && \
-    echo $'#!/bin/sh\n\
-### nss_wrapper\n\
-export USER_ID=$(id -u)\n\
-export GROUP_ID=$(id -g)\n\
-envsubst < ${APP_ROOT}/passwd.template > /tmp/passwd\n\
-export LD_PRELOAD=/usr/lib64/libnss_wrapper.so\n\
-export NSS_WRAPPER_PASSWD=/tmp/passwd\n\
-export NSS_WRAPPER_GROUP=/etc/group\n\
-exec "$@"' > ${APP_ROOT}/bin/nss_entrypoint.sh && \
-    cp ${APP_ROOT}/bin/nss_entrypoint.sh ${APP_ROOT}/.profile && \ 
-    chmod ug+x ${APP_ROOT}/bin/nss_entrypoint.sh && \
-#    chown -R ${USER_UID}:0 ${APPLICATION_INSTALL} && \
-#    chmod -R g+rw ${APPLICATION_INSTALL} && \
-    chown -R ${USER_UID}:0 ${APP_ROOT} && \
-    chmod -R g+rw ${APP_ROOT} && \
-    find ${APP_ROOT} -type d -exec chmod g+x {} +
-#    find ${APPLICATION_INSTALL} -type d -exec chmod g+x {} +
 
 ### Containers should NOT run as root as a best practice
 USER ${USER_UID}
 WORKDIR ${APP_ROOT}
 
+RUN sed "s@${USER_NAME}:x:${USER_UID}:0@${USER_NAME}:x:\${USER_ID}:\${GROUP_ID}@g" /etc/passwd > ${APP_ROOT}/etc/passwd.template
 VOLUME ${APPLICATION_HOME} ${APPLICATION_INSTALL}/logs
 ### NSS_WRAPPER for arbitrary uid recognition
-ENTRYPOINT [ "nss_entrypoint.sh" ]
+ENTRYPOINT [ "nss_entrypoint" ]
 EXPOSE 8080
 CMD ${APPLICATION_INSTALL}/bin/catalina.sh run 
