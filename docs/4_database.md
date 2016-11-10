@@ -1,8 +1,12 @@
 
 #### MySQL
-Now that we have an image and a container running we are still missing a critical piece, the database.
-OpenShift provides out of the box an image and template for MySQL.  The only hangup with that image is that it uses MySQL's defaul collation and character set.  Jira requires utf8 and utf8_bin.  So how to solve this wrinkle?
+Now that we have an image for Jira and a container running we are still missing a critical piece, the database.  OpenShift provides out of the box an image and template for MySQL.  The only hangup with that image is that it uses MySQL's defaul collation and character set.  Jira requires utf8 and utf8_bin.  So how to solve this wrinkle?
 
+
+
+```
+oc new-app -o yaml https://github.com/jcpowermac/mysql-container --strategy=docker --context-dir="./5.6/" > mysql-container.yaml
+```
 
 ```
 diff --git a/5.6/root/usr/bin/run-mysqld b/5.6/root/usr/bin/run-mysqld
