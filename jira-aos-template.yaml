@@ -7,6 +7,26 @@ metadata:
   name: jira-persistent-template
 objects:
 - apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${APPLICATION_VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${DATABASE_SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${DATABASE_VOLUME_CAPACITY}
+- apiVersion: v1
   kind: Service
   metadata:
     name: ${DATABASE_SERVICE_NAME}
@@ -125,13 +145,34 @@ objects:
             value: ${MYSQL_PASSWORD}
           - name: MYSQL_DATABASE
             value: ${MYSQL_DATABASE}
+          - name: MYSQL_ROOT_PASSWORD
+            value: ${MYSQL_ROOT_PASSWORD}
           image: ' ' 
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -i
+              - -c
+              - MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER -D $MYSQL_DATABASE
+                -e 'SELECT 1'
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
           name: mysql
           ports:
           - containerPort: 3306
             protocol: TCP
-          resources: {}
+          resources:
+            limits:
+              memory: ${MEMORY_LIMIT}
           terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/mysql/data
+            name: ${DATABASE_SERVICE_NAME}-data
+        volumes:
+        - name: ${DATABASE_SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${DATABASE_SERVICE_NAME}
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         securityContext: {}
@@ -174,10 +215,17 @@ objects:
             protocol: TCP
           resources: {}
           terminationMessagePath: /dev/termination-log
+          volumeMounts:
+            - mountPath: /var/atlassian/jira/ 
+              name: ${NAME}-data
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         securityContext: {}
         terminationGracePeriodSeconds: 30
+        volumes:
+        - name: ${NAME}-data
+          persistentVolumeClaim:
+            claimName: ${NAME}
     test: false
     triggers:
     - type: ConfigChange
@@ -258,7 +306,7 @@ parameters:
   name: NAME
   required: true
   value: jira 
-- description: The exposed hostname that will route to the CakePHP service, if left
+- description: The exposed hostname that will route to the Jira service, if left
     blank a value will be defaulted.
   displayName: Application Hostname
   name: APPLICATION_DOMAIN
@@ -267,10 +315,6 @@ parameters:
   name: MEMORY_LIMIT
   required: true
   value: 512Mi
-- description: The OpenShift Namespace where the ImageStream resides.
-  displayName: Namespace
-  name: NAMESPACE
-  value: openshift
 - description: The name of the OpenShift Service exposed for the database.
   displayName: Database Service Name
   name: DATABASE_SERVICE_NAME
@@ -282,12 +326,7 @@ parameters:
   generate: expression
   name: MYSQL_USER
   required: true
-- description: Password for the MySQL root connection user.
-  displayName: MySQL root Password
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  name: MYSQL_ROOT_PASSWORD
-  required: true
+  value: jira
 - description: Password for the MySQL connection user.
   displayName: MySQL Connection Password
   from: '[a-zA-Z0-9]{16}'
@@ -298,10 +337,21 @@ parameters:
   displayName: MySQL Database Name
   name: MYSQL_DATABASE
   required: true
-  value: sampledb
-- description: Volume space available for data, e.g. 512Mi, 2Gi.
-  displayName: Volume Capacity
-  name: VOLUME_CAPACITY
+  value: jiradb 
+- description: Password for the administration account for MySQL.
+  displayName: MySQL root Password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  name: MYSQL_ROOT_PASSWORD
+  required: true
+- description: Volume space available for Database data, e.g. 512Mi, 2Gi.
+  displayName: Database Volume Capacity
+  name: DATABASE_VOLUME_CAPACITY
+  required: true
+  value: 1Gi
+- description: Volume space available for Application data, e.g. 512Mi, 2Gi.
+  displayName: Application Volume Capacity
+  name: APPLICATION_VOLUME_CAPACITY
   required: true
   value: 1Gi
 - description: A secret string used to configure the GitHub webhook.
