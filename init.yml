@@ -4,16 +4,15 @@
   tasks:
     - name: Update Minimal
       command: 'yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs --disablerepo "*" --enablerepo rhel-7-server-rpms,rhel7-server-optional-rpms'
-    
+
     - name: Install Packages
       yum:
         name: "{{ item }}"
         state: present
         disablerepo: "*"
-        enablerepo: "rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms" 
+        enablerepo: "rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms"
       with_items:
         - wget
-        - http://dev.mysql.com/get/mysql57-community-release-el7-8.noarch.rpm
         - nss_wrapper
         - gettext
         - golang-github-cpuguy83-go-md2man
@@ -27,7 +26,7 @@
         dest: /tmp/help.md
         state: absent
       when: "{{ manpage|success }}"
-    
+
     - name: Remove go-md2man package
       yum:
         pkg: "{{ item }}"
@@ -43,7 +42,7 @@
     - name: Extract MySQL Java Connector
       command: tar -xf /tmp/mysql.tar.gz --directory /tmp --strip-components=1 --no-same-owner "mysql-connector-java-5.1.38/mysql-connector-java-5.1.38-bin.jar"
 
-    - name: Download Jira 
+    - name: Download Jira
       get_url:
         url: "https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-core-{{ application_version }}-x64.bin"
         dest: /tmp/jira.bin
@@ -60,12 +59,12 @@
 
     - name: Run Installer
       command: /tmp/jira.bin -q -varfile /tmp/response.varfile
-      
+
     - name: Copy MySQL Java Connectory
       copy:
         src: /tmp/mysql-connector-java-5.1.38-bin.jar
         dest: "{{ application_install }}/lib"
-    
+
     - name: Remove MySQL Connector from /tmp
       file:
         dest: /tmp/mysql-connector-java-5.1.38-bin.jar
@@ -81,7 +80,7 @@
         dest: "{{ item }}"
         state: directory
         owner: jira
-        group: root 
+        group: root
         mode: 0775
         recurse: yes
       with_items:
