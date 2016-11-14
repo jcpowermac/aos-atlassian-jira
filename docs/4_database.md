@@ -1,9 +1,7 @@
-
 #### MySQL
-Now that we have an image for Jira and a container running we are still missing a critical piece, the database.  OpenShift provides out of the box an image and template for MySQL.  The only hangup with that image is that it uses MySQL's defaul collation and character set.  Jira requires utf8 and utf8_bin.  So how to solve this wrinkle?
+Now that we have an image for Jira and a container running we are still missing a critical piece, the database.  OpenShift provides out of the box an image and template for MySQL.  The only hangup with that image is that it uses MySQL's default collation and character set; Jira requires utf8 and utf8_bin.  So how to solve this wrinkle?
 
-
-Changes to mysql-container project to support setting collation and character set via environmental variables.
+There maybe a more proper way but I forked the GitHub project [sclorg/mysql-container](https://github.com/sclorg/mysql-container) and the appropriate changes to the project to support setting collation and character set via environmental variables.  Below is the patch.
 ```
 diff --git a/5.6/root/usr/bin/run-mysqld b/5.6/root/usr/bin/run-mysqld
 index 9aef142..a77c858 100755

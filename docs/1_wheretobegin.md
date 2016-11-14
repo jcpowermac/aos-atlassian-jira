@@ -28,11 +28,11 @@ For this example the binary option will be used.  Why:
 ##### Installation
 As with any software it is important to read the documentation for [installation](https://confluence.atlassian.com/adminjiraserver071/installing-jira-applications-on-linux-802592173.html) and [requirements](https://confluence.atlassian.com/adminjiraserver071/jira-applications-installation-requirements-802592164.html).
 
-For our example Jira the steps to for pre and post install are as follows:
+For our example Jira the steps for pre and post install are as follows:
 
 1. Download and extract the MySQL Java connector
 2. For a silent install create the response.varfile
-3. Run the installer
+3. Download and run the installer
 4. Copy the MySQL Java connector to the appropriate directory
 
 Since Jira will be run in a container modifications to the steps are required:

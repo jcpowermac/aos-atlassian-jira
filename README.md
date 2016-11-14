@@ -11,6 +11,7 @@ The aos-atlassian-jira is an example and documentation for:
 - [non-root and random uuid](docs/2_nonroot.md)
 - [OpenShift and Jira](docs/3_openshift.md)
 - [Jira's Database](docs/4_database.md)
+- [OpenShift template](docs/5_template.md)
 
 ---
 ##### Run project
