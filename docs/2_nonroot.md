@@ -1,4 +1,15 @@
+##### TOC
+
+- [Where to begin](docs/1_wheretobegin.md)
+- [non-root and random uuid](docs/2_nonroot.md)
+- [OpenShift and Jira](docs/3_openshift.md)
+- [Jira's Database](docs/4_database.md)
+- [OpenShift template](docs/5_template.md)
+
+---
+
 #### Container as non-root user and random user id
+
 Containers should not run as root.  Within OpenShift they run by default under a random user id. Fortunately Jira already runs as a non-root user Jira. Unfortunately the Jira application expects to run as the user Jira.  That is where our [starter-nsswrapper](https://github.com/RHsyseng/container-rhel-examples/tree/master/starter-nsswrapper) project comes in.
 The starter-nsswrapper project contains an example Dockerfile and scripts when dealing with an application that requires a defined user.  In every situtation modification most likely be required.
 

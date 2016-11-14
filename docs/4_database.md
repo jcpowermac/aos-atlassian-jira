@@ -1,3 +1,13 @@
+##### TOC
+
+- [Where to begin](docs/1_wheretobegin.md)
+- [non-root and random uuid](docs/2_nonroot.md)
+- [OpenShift and Jira](docs/3_openshift.md)
+- [Jira's Database](docs/4_database.md)
+- [OpenShift template](docs/5_template.md)
+
+---
+
 #### MySQL
 Now that we have an image for Jira and a container running we are still missing a critical piece, the database.  OpenShift provides out of the box an image and template for MySQL.  The only hangup with that image is that it uses MySQL's default collation and character set; Jira requires utf8 and utf8_bin.  So how to solve this wrinkle?
 
