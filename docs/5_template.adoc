@@ -1,0 +1,23 @@
+[[toc]]
+TOC
+
+* link:docs/1_wheretobegin.md[Where to begin]
+* link:docs/2_nonroot.md[non-root and random uuid]
+* link:docs/3_openshift.md[OpenShift and Jira]
+* link:docs/4_database.md[Jira's Database]
+* link:docs/5_template.md[OpenShift template]
+
+'''''
+
+[[openshift-template]]
+OpenShift Template
+
+Use examples!
+
+....
+oc export svc,is,dc,bc --as-template Jira > jira-aos-template.yaml
+....
+
+....
+oc -o yaml export template cakephp-mysql-example -n openshift > ~/scratch/cake.yaml
+....
