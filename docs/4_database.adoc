@@ -25,6 +25,7 @@ https://github.com/sclorg/mysql-container[sclorg/mysql-container]. Then
 made the appropriate changes to the project to support setting collation
 and character set via environmental variables. Below is the patch.
 
+[source]
 ....
 diff --git a/5.6/root/usr/bin/run-mysqld b/5.6/root/usr/bin/run-mysqld
 index 9aef142..a77c858 100755
@@ -77,6 +78,7 @@ In the project the dockerfile is named `Dockerfile.rhel` so we will need
 to modify the output. Below is a diff between the original output and
 the modifications.
 
+[source]
 ....
 --- upstream-mysql-container.yaml   2016-11-16 09:57:25.173714802 -0500
 +++ origin-mysql-container.yaml 2016-11-16 10:21:12.170152506 -0500
@@ -84,7 +86,7 @@ the modifications.
  - apiVersion: v1
    kind: ImageStream
    metadata:
--    annotations:                                     (1)
+-    annotations:                                          <1>
 -      openshift.io/generated-by: OpenShiftNewApp
 -    creationTimestamp: null
 -    labels:
@@ -131,7 +133,7 @@ the modifications.
 -    resources: {}
      source:
 -      contextDir: ./5.6/
-+      contextDir: "5.6"
++      contextDir: "5.6"                                   <2>
        git:
          uri: https://github.com/jcpowermac/mysql-container
        type: Git
@@ -140,7 +142,7 @@ the modifications.
 -        from:
 -          kind: ImageStreamTag
 -          name: centos:centos7
-+        dockerfilePath: Dockerfile.rhel7
++        dockerfilePath: Dockerfile.rhel7                  <2>
        type: Docker
      triggers:
      - github:
@@ -179,7 +181,7 @@ the modifications.
        spec:
          containers:
 -        - image: mysql-container:latest
-+        - env:
++        - env:                                            <3>
 +          - name: MYSQL_USER
 +            value: testing
 +          - name: MYSQL_PASSWORD
@@ -227,3 +229,7 @@ the modifications.
  kind: List
  metadata: {}
 ....
+<1> Remove the CentOS ImageStream, annoations and status
+<2> In testing I had to change the `contextDir` to only the directory name for
+`dockerfilePath` to function correctly.  Add `dockerfilePath: Dockerfile.rhel7` to the `dockerStrategy`.
+<3> Add the environmental variables required for testing.
