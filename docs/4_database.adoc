@@ -84,7 +84,7 @@ the modifications.
  - apiVersion: v1
    kind: ImageStream
    metadata:
--    annotations:
+-    annotations:                                     (1)
 -      openshift.io/generated-by: OpenShiftNewApp
 -    creationTimestamp: null
 -    labels:
