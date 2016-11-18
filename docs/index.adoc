@@ -1,17 +1,188 @@
-[[toc]]
-TOC
+= Atomic OpenShift Atlassian Jira Example
+Joseph Callen
+:toc:
 
-* link:docs/1_wheretobegin.md[Where to begin]
-* link:docs/2_nonroot.md[non-root and random uuid]
-* link:docs/3_openshift.md[OpenShift and Jira]
-* link:docs/4_database.md[Jira's Database]
-* link:docs/5_template.md[OpenShift template]
 
 '''''
 
+[[where-to-begin...]]
+== Where to begin...
+
+
+
+[[goals]]
+=== Goals
+
+* Install and configure application to run in a container
+* Configure the image to run as a non-root user
+* Configure the image to run as a random user id
+* Configure the image to run in OpenShift
+
+'''''
+
+[[example-and-background]]
+=== Example and background
+
+For this example I will use
+https://www.atlassian.com/software/jira[Atlassian Jira] - a issue and
+project tracking for teams. I am using this as an example because a have
+previous experience with the product.
+
+Jira has two options for installation:
+
+1.  Archive
+2.  Binary
+
+For this example the binary option will be used. Why:
+
+1.  Java is required for Jira to run and the binary provides the
+supported version that it requires.
+2.  Jira requires directory and user account creation which is automated
+by the binary installer.
+
+'''''
+
+[[installation]]
+=== Installation
+
+As with any software it is important to read the documentation for
+https://confluence.atlassian.com/adminjiraserver071/installing-jira-applications-on-linux-802592173.html[installation]
+and
+https://confluence.atlassian.com/adminjiraserver071/jira-applications-installation-requirements-802592164.html[requirements].
+
+For our example Jira the steps for pre and post install are as follows:
+
+1.  Download and extract the MySQL Java connector
+2.  For a silent install create the response.varfile
+3.  Download and run the installer
+4.  Copy the MySQL Java connector to the appropriate directory
+
+Since Jira will be run in a container modifications to the steps are
+required:
+
+1.  Container-related prerequisites: nss_wrapper, gettext, go-md2man
+2.  Removal of binaries: Jira installer and MySQL Connector
+3.  Modifications to application directory permissions
+
+The steps above are executed via Ansible - not necessarily a best
+practice but an option for complex scanrios, see
+link:../init.yml[init.yml] for an example.
+
+
+'''''
+
+[[container-as-non-root-user-and-random-user-id]]
+== Container as non-root user and random user id
+
+
+Containers should not run as root. Within OpenShift they run by default
+under a random user id. Fortunately Jira already runs as a non-root user
+Jira. Unfortunately the Jira application expects to run as the user
+Jira. That is where our
+https://github.com/RHsyseng/container-rhel-examples/tree/master/starter-nsswrapper[starter-nsswrapper]
+project comes in. The starter-nsswrapper project contains an example
+Dockerfile and scripts when dealing with an application that requires a
+defined user. In every situtation modification most likely be required.
+
+'''''
+
+[[dockerfile-annotation]]
+== Dockerfile Annotation
+
+
+[source]
+....
+FROM registry.access.redhat.com/rhel7                      <1>
+MAINTAINER Red Hat Systems Engineering <refarch-feedback@redhat.com>
+
+ENV APPLICATION jira                                       <2>
+ENV APPLICATION_HOME=/var/atlassian/${APPLICATION} \
+    APPLICATION_INSTALL=/opt/atlassian/${APPLICATION} \
+    APPLICATION_VERSION=7.1.9
+
+LABEL Name="Jira" \                                        <3>
+      Vendor="Atlassian" \
+      Version="7.1.9" \
+      Release="7" \
+      build-date="" \
+      url="https://www.atlassian.com/software/jira" \
+      summary="Agile Project Management Software" \
+      description="Agile Project Management Software" \
+      RUN='docker run -tdi --name ${NAME} \
+      -u 123456 \
+      ${IMAGE}' \
+      STOP='docker stop ${NAME}'\
+      io.k8s.description="Agile Project Management Software" \
+      io.k8s.display-name="Atlassian Jira" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="jira,AtlassianJira"
+
+
+COPY help.md user_setup response.varfile init.yml /tmp/    <4>
+
+RUN yum clean all && \
+    yum -y install --disablerepo "*" \
+                   --enablerepo rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms \                      <5>
+                   --setopt=tsflags=nodocs ansible && \
+    ansible-playbook /tmp/init.yml -c local -i localhost, \                                                                      <6>
+                   --extra-vars "application_install=${APPLICATION_INSTALL} application_version=${APPLICATION_VERSION}" && \
+    yum -y erase ansible && \                                                                                                    <7>
+    yum -y autoremove && \
+    yum clean all
+
+ENV APP_ROOT=${APPLICATION_INSTALL} \
+    USER_NAME=jira \
+    USER_UID=1000
+ENV APP_HOME=${APPLICATION_HOME} PATH=$PATH:${APP_ROOT}/bin
+RUN mkdir -p ${APP_ROOT}/etc
+COPY bin/ ${APP_ROOT}/bin/
+RUN chmod -R ug+x ${APP_ROOT}/bin ${APP_ROOT}/etc/ /tmp/user_setup && \                                                          <8>
+    /tmp/user_setup
+
+
+USER ${USER_UID}                                                                                                                 <9>
+WORKDIR ${APP_ROOT}
+
+RUN sed "s@${USER_NAME}:x:${USER_UID}:0@${USER_NAME}:x:\${USER_ID}:\${GROUP_ID}@g" /etc/passwd > ${APP_ROOT}/etc/passwd.template <10>
+VOLUME ${APPLICATION_HOME} ${APPLICATION_INSTALL}/logs
+ENTRYPOINT [ "nss_entrypoint" ]                                                                                                  <11>
+EXPOSE 8080
+CMD ${APPLICATION_INSTALL}/bin/catalina.sh run                                                                                   <12>
+....
+<1> 
+<2>
+
+[[modification-to-starter-nsswrapper]]
+=== Modification to starter-nsswrapper
+
+1.  Additional files need to be copied into the image
+2.  user_setup script
+
+* Changed useradd to usermod - Jira installer creates user, all we have
+to do is modify it. *NOTE:* For the sed command in the
+link:../Dockerfile[Dockerfile] to work correctly the gid of the user
+must be set to 0.
+* Added $\{APP_HOME} to chown and chmod commands
+
+1.  Changed CMD from run to the script that starts Jira
+
+'''''
+
+[[openshift-and-jira-container]]
+== OpenShift and Jira container
+
+Now that we have a proper container image how do we get this running
+into OpenShift? Since the project is in GitHub we can use the
+`oc new-app` command.
+
+For our Jira project:
+
+....
+oc new-app https://github.com/jcpowermac/aos-atlassian-jira --context-dir . --strategy docker
+....
+
 [[mysql-changes]]
-MySQL Changes
-+++++++++++++
+== MySQL Changes
 
 Now that we have an image for Jira and a container running we are still
 missing a critical piece, the database. OpenShift provides out of the
@@ -66,7 +237,6 @@ index 0000000..655a3f0
 
 [[openshift]]
 OpenShift
-+++++++++
 
 Create a new-app from the GitHub repository and output as yaml
 
@@ -233,3 +403,19 @@ the modifications.
 <2> In testing I had to change the `contextDir` to only the directory name for
 `dockerfilePath` to function correctly.  Add `dockerfilePath: Dockerfile.rhel7` to the `dockerStrategy`.
 <3> Add the environmental variables required for testing.
+
+
+'''''
+
+[[openshift-template]]
+OpenShift Template
+
+Use examples!
+
+....
+oc export svc,is,dc,bc --as-template Jira > jira-aos-template.yaml
+....
+
+....
+oc -o yaml export template cakephp-mysql-example -n openshift > ~/scratch/cake.yaml
+....
