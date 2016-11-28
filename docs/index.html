@@ -435,7 +435,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#installation">Installation</a></li>
 </ul>
 </li>
-<li><a href="#container-as-non-root-user-and-random-user-id">Container as non-root user and random user id</a>
+<li><a href="#container-as-non-root-user-and-random-user-id">Container as non-root user and random user id</a></li>
+<li><a href="#dockerfile-annotation">Dockerfile Annotation</a>
 <ul class="sectlevel2">
 <li><a href="#modification-to-starter-nsswrapper">Modification to starter-nsswrapper</a></li>
 </ul>
@@ -579,6 +580,75 @@ Dockerfile and scripts when dealing with an application that requires a
 defined user. In every situtation modification most likely be required.</p>
 </div>
 <hr>
+</div>
+</div>
+<div class="sect1">
+<h2 id="dockerfile-annotation">Dockerfile Annotation</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>FROM registry.access.redhat.com/rhel7                      <b class="conum">(1)</b>
+MAINTAINER Red Hat Systems Engineering &lt;refarch-feedback@redhat.com&gt;
+
+ENV APPLICATION jira                                       <b class="conum">(2)</b>
+ENV APPLICATION_HOME=/var/atlassian/${APPLICATION} \
+    APPLICATION_INSTALL=/opt/atlassian/${APPLICATION} \
+    APPLICATION_VERSION=7.1.9
+
+LABEL Name="Jira" \                                        <b class="conum">(3)</b>
+      Vendor="Atlassian" \
+      Version="7.1.9" \
+      Release="7" \
+      build-date="" \
+      url="https://www.atlassian.com/software/jira" \
+      summary="Agile Project Management Software" \
+      description="Agile Project Management Software" \
+      RUN='docker run -tdi --name ${NAME} \
+      -u 123456 \
+      ${IMAGE}' \
+      STOP='docker stop ${NAME}'\
+      io.k8s.description="Agile Project Management Software" \
+      io.k8s.display-name="Atlassian Jira" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="jira,AtlassianJira"
+
+
+COPY help.md user_setup response.varfile init.yml /tmp/    <b class="conum">(4)</b>
+
+RUN yum clean all &amp;&amp; \
+    yum -y install --disablerepo "*" \
+                   --enablerepo rhel-7-server-rpms,rhel-7-server-optional-rpms,rhel-7-server-ose-3.3-rpms \                      <b class="conum">(5)</b>
+                   --setopt=tsflags=nodocs ansible &amp;&amp; \
+    ansible-playbook /tmp/init.yml -c local -i localhost, \                                                                      <b class="conum">(6)</b>
+                   --extra-vars "application_install=${APPLICATION_INSTALL} application_version=${APPLICATION_VERSION}" &amp;&amp; \
+    yum -y erase ansible &amp;&amp; \                                                                                                    <b class="conum">(7)</b>
+    yum -y autoremove &amp;&amp; \
+    yum clean all
+
+ENV APP_ROOT=${APPLICATION_INSTALL} \
+    USER_NAME=jira \
+    USER_UID=1000
+ENV APP_HOME=${APPLICATION_HOME} PATH=$PATH:${APP_ROOT}/bin
+RUN mkdir -p ${APP_ROOT}/etc
+COPY bin/ ${APP_ROOT}/bin/
+RUN chmod -R ug+x ${APP_ROOT}/bin ${APP_ROOT}/etc/ /tmp/user_setup &amp;&amp; \                                                          <b class="conum">(8)</b>
+    /tmp/user_setup
+
+
+USER ${USER_UID}                                                                                                                 <b class="conum">(9)</b>
+WORKDIR ${APP_ROOT}
+
+RUN sed "s@${USER_NAME}:x:${USER_UID}:0@${USER_NAME}:x:\${USER_ID}:\${GROUP_ID}@g" /etc/passwd &gt; ${APP_ROOT}/etc/passwd.template <b class="conum">(10)</b>
+VOLUME ${APPLICATION_HOME} ${APPLICATION_INSTALL}/logs
+ENTRYPOINT [ "nss_entrypoint" ]                                                                                                  <b class="conum">(11)</b>
+EXPOSE 8080
+CMD ${APPLICATION_INSTALL}/bin/catalina.sh run                                                                                   <b class="conum">(12)</b></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>&lt;1&gt;
+&lt;2&gt;</p>
+</div>
 <div class="sect2">
 <h3 id="modification-to-starter-nsswrapper">Modification to starter-nsswrapper</h3>
 <div class="olist arabic">
@@ -889,7 +959,7 @@ the modifications.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-11-16 14:17:55 EST
+Last updated 2016-11-28 12:44:56 EST
 </div>
 </div>
 </body>
